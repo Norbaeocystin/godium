@@ -3,10 +3,10 @@ package godium
 import (
 	"context"
 	"fmt"
+	amm_v32 "github.com/Norbaeocystin/godium/amm_v3"
 	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
-	amm_v32 "raydium/pkg/amm_v3"
 )
 
 func OpenNewPositionAndAddLiquidity(tickLower,
@@ -51,11 +51,11 @@ func OpenNewPositionAndAddLiquidity(tickLower,
 		tokenB,
 		tokenVault0,
 		tokenVault1,
-		solana.SysVarRentPubkey, // const
-		solana.SystemProgramID,  // const
-		solana.TokenProgramID,   // const
+		solana.SysVarRentPubkey,                   // const
+		solana.SystemProgramID,                    // const
+		solana.TokenProgramID,                     // const
 		solana.SPLAssociatedTokenAccountProgramID, // const
-		METAPLEX, // const
+		METAPLEX,                                  // const
 	).Build()
 	recent, err := client.GetRecentBlockhash(context.TODO(), rpc.CommitmentFinalized)
 	if err != nil {

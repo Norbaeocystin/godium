@@ -1,11 +1,11 @@
-package raydium
+package godium
 
 import (
 	"context"
+	amm_v3 "github.com/Norbaeocystin/godium/amm_v3"
 	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
-	"raydium/pkg/amm_v3"
 )
 
 func GetPoolState(client rpc.Client, poolAddress solana.PublicKey) amm_v3.PoolState {

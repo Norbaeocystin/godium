@@ -1,12 +1,12 @@
-package raydium
+package godium
 
 import (
 	"context"
 	"fmt"
+	amm_v32 "github.com/Norbaeocystin/godium/amm_v3"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
 	"log"
-	amm_v32 "raydium/pkg/amm_v3"
 )
 
 func DecreaseLiquidityAndClose(position amm_v32.PersonalPositionState, client rpc.Client, token0, token1, tokenVault0, tokenVault1,

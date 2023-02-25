@@ -1,4 +1,4 @@
-module raydium
+module github.com/Norbaeocystin/godium
 
 go 1.18
 

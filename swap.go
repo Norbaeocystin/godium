@@ -1,13 +1,13 @@
-package raydium
+package godium
 
 import (
 	"context"
 	"fmt"
+	amm_v32 "github.com/Norbaeocystin/godium/amm_v3"
 	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
 	"log"
-	amm_v32 "raydium/pkg/amm_v3"
 )
 
 func Swap(client *rpc.Client, amountIn, amountOutMin uint64, sqrtPriceLimit bin.Uint128, isBaseInput bool, tokenIn,

@@ -1,4 +1,4 @@
-package raydium
+package godium
 
 import (
 	"encoding/binary"

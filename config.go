@@ -14,3 +14,4 @@ var POOL_REWARD_VAULT_SEED = []byte("pool_reward_vault")
 var POSITION_SEED = []byte("position")
 var TICK_ARRAY_SEED = []byte("tick_array")
 var OPERATION_SEED = []byte("operation")
+var POOL_V3_API = "https://api.raydium.io/v2/ammV3/ammPools"

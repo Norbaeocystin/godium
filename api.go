@@ -147,13 +147,13 @@ type TokenList struct {
 // find name and symbol
 func (t TokenList) FindInfo(mintAsString string) Token {
 	var token Token
-	for _, item := range t.Official {
-		if item.Mint == mintAsString {
+	for _, token := range t.Official {
+		if token.Mint == mintAsString {
 			return token
 		}
 	}
-	for _, item := range t.UnOfficial {
-		if item.Mint == mintAsString {
+	for _, token := range t.UnOfficial {
+		if token.Mint == mintAsString {
 			return token
 		}
 	}

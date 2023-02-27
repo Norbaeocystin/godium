@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-// get pools data via orca api
+// get pools data via raydium api
 func GetPoolsViaApi() (PoolsV3Data, error) {
 	var poolsData PoolsV3Data
 	client := http.Client{}

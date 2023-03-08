@@ -5,6 +5,7 @@ import (
 	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/rpc"
+	"math/big"
 )
 
 func NewMarket(client *rpc.Client, marketId solana.PublicKey) Market {
@@ -68,6 +69,81 @@ func (m Market) SwapAtoBInstruction(amount, otherAmountThreshold uint64, sqrtPri
 	).Build()
 }
 
+func (m Market) SwapAtoBInstructionWithSlippageUseState(amount uint64, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
+	amm_v3.ProgramID = m.ProgramId
+	price := CalculatePriceFromSQRPriceQ64(m.PoolState.SqrtPriceX64.BigInt())
+	priceWithSlippage := price - (price * (slippagePCT / 100))
+	otherAmountThreshold := uint64(float64(amount) * priceWithSlippage)
+	sqrtPriceLimit, _ := BigIntToBinUint128(CalculateSqrtPriceQ64(big.NewFloat(priceWithSlippage)))
+	kta := GetTickArray(m.PoolState.TickCurrent, m.KTAS)
+	return amm_v3.NewSwapInstruction(
+		amount,
+		otherAmountThreshold,
+		sqrtPriceLimit,
+		true,
+		owner,
+		m.PoolState.AmmConfig,
+		m.MarketId,
+		ownerTokenAAddress,
+		m.PoolState.TokenVault0,
+		ownerTokenBAddress,
+		m.PoolState.TokenVault1,
+		m.PoolState.ObservationKey,
+		solana.TokenProgramID,
+		kta.Account,
+	).Build()
+}
+
+func (m Market) SwapAtoBInstructionWithSlippageUsePrice(amount uint64, price, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
+	amm_v3.ProgramID = m.ProgramId
+	tick := (PriceToTick(price) / int32(m.PoolState.TickSpacing)) * int32(m.PoolState.TickSpacing)
+	priceWithSlippage := price - (price * (slippagePCT / 100))
+	otherAmountThreshold := uint64(float64(amount) * priceWithSlippage)
+	sqrtPriceLimit, _ := BigIntToBinUint128(CalculateSqrtPriceQ64(big.NewFloat(priceWithSlippage)))
+	kta := GetTickArray(tick, m.KTAS)
+	return amm_v3.NewSwapInstruction(
+		amount,
+		otherAmountThreshold,
+		sqrtPriceLimit,
+		true,
+		owner,
+		m.PoolState.AmmConfig,
+		m.MarketId,
+		ownerTokenAAddress,
+		m.PoolState.TokenVault0,
+		ownerTokenBAddress,
+		m.PoolState.TokenVault1,
+		m.PoolState.ObservationKey,
+		solana.TokenProgramID,
+		kta.Account,
+	).Build()
+}
+
+func (m Market) SwapBToAInstructionWithSlippageUseState(amount uint64, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
+	amm_v3.ProgramID = m.ProgramId
+	price := CalculatePriceFromSQRPriceQ64(m.PoolState.SqrtPriceX64.BigInt())
+	priceWithSlippage := price + (price * (slippagePCT / 100))
+	otherAmountThreshold := uint64(float64(amount) * priceWithSlippage)
+	sqrtPriceLimit, _ := BigIntToBinUint128(CalculateSqrtPriceQ64(big.NewFloat(priceWithSlippage)))
+	kta := GetTickArray(m.PoolState.TickCurrent, m.KTAS)
+	return amm_v3.NewSwapInstruction(
+		amount,
+		otherAmountThreshold,
+		sqrtPriceLimit,
+		false,
+		owner,
+		m.PoolState.AmmConfig,
+		m.MarketId,
+		ownerTokenBAddress,
+		m.PoolState.TokenVault1,
+		ownerTokenAAddress,
+		m.PoolState.TokenVault0,
+		m.PoolState.ObservationKey,
+		solana.TokenProgramID,
+		kta.Account,
+	).Build()
+}
+
 func (m Market) SwapBToAInstruction(amount, otherAmountThreshold uint64, sqrtPriceLimit bin.Uint128, owner, ownerTokenAAddress, ownerTokenBAddress, kta solana.PublicKey) solana.Instruction {
 	amm_v3.ProgramID = m.ProgramId
 	return amm_v3.NewSwapInstruction(
@@ -85,5 +161,30 @@ func (m Market) SwapBToAInstruction(amount, otherAmountThreshold uint64, sqrtPri
 		m.PoolState.ObservationKey,
 		solana.TokenProgramID,
 		kta,
+	).Build()
+}
+
+func (m Market) SwapBToAInstructionWithSlippageUsePrice(amount uint64, price, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
+	amm_v3.ProgramID = m.ProgramId
+	tick := (PriceToTick(price) / int32(m.PoolState.TickSpacing)) * int32(m.PoolState.TickSpacing)
+	priceWithSlippage := price + (price * (slippagePCT / 100))
+	otherAmountThreshold := uint64(float64(amount) * priceWithSlippage)
+	sqrtPriceLimit, _ := BigIntToBinUint128(CalculateSqrtPriceQ64(big.NewFloat(priceWithSlippage)))
+	kta := GetTickArray(tick, m.KTAS)
+	return amm_v3.NewSwapInstruction(
+		amount,
+		otherAmountThreshold,
+		sqrtPriceLimit,
+		false,
+		owner,
+		m.PoolState.AmmConfig,
+		m.MarketId,
+		ownerTokenBAddress,
+		m.PoolState.TokenVault1,
+		ownerTokenAAddress,
+		m.PoolState.TokenVault0,
+		m.PoolState.ObservationKey,
+		solana.TokenProgramID,
+		kta.Account,
 	).Build()
 }

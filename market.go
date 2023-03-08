@@ -123,7 +123,7 @@ func (m Market) SwapBToAInstructionWithSlippageUseState(amount uint64, slippageP
 	amm_v3.ProgramID = m.ProgramId
 	price := CalculatePriceFromSQRPriceQ64(m.PoolState.SqrtPriceX64.BigInt())
 	priceWithSlippage := price + (price * (slippagePCT / 100))
-	otherAmountThreshold := uint64(float64(amount) * priceWithSlippage)
+	otherAmountThreshold := uint64(float64(amount) / priceWithSlippage)
 	sqrtPriceLimit, _ := BigIntToBinUint128(CalculateSqrtPriceQ64(big.NewFloat(priceWithSlippage)))
 	kta := GetTickArray(m.PoolState.TickCurrent, m.KTAS)
 	return amm_v3.NewSwapInstruction(
@@ -168,7 +168,7 @@ func (m Market) SwapBToAInstructionWithSlippageUsePrice(amount uint64, price, sl
 	amm_v3.ProgramID = m.ProgramId
 	tick := (PriceToTick(price) / int32(m.PoolState.TickSpacing)) * int32(m.PoolState.TickSpacing)
 	priceWithSlippage := price + (price * (slippagePCT / 100))
-	otherAmountThreshold := uint64(float64(amount) * priceWithSlippage)
+	otherAmountThreshold := uint64(float64(amount) / priceWithSlippage)
 	sqrtPriceLimit, _ := BigIntToBinUint128(CalculateSqrtPriceQ64(big.NewFloat(priceWithSlippage)))
 	kta := GetTickArray(tick, m.KTAS)
 	return amm_v3.NewSwapInstruction(

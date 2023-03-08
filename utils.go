@@ -174,3 +174,7 @@ func BigIntToBinUint128(value *big.Int) (bin.Uint128, error) {
 	//log.Println(low, high)
 	return returnValue, nil
 }
+
+func PriceToTick(price float64) int32 {
+	return int32(math.Log(price) / math.Log(1.0001))
+}

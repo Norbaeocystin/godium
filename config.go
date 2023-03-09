@@ -16,3 +16,5 @@ var TICK_ARRAY_SEED = []byte("tick_array")
 var OPERATION_SEED = []byte("operation")
 var POOLS_V3_API = "https://api.raydium.io/v2/ammV3/ammPools"
 var TOKENS_API = "https://api.raydium.io/v2/sdk/token/raydium.mainnet.json"
+
+const TICK_ARRAY_SIZE = 60

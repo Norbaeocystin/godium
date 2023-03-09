@@ -73,8 +73,9 @@ func GetTickArrays(client *rpc.Client, poolStateAddress solana.PublicKey) []Keye
 	return ktas
 }
 
-func GetStartTickIndex() {
-
+func GetStartTickIndex(tick int32, tickSpacing uint16) int32 {
+	realIndex := (tick / int32(tickSpacing)) / int32(TICK_ARRAY_SIZE)
+	return realIndex * int32(tickSpacing) * int32(TICK_ARRAY_SIZE)
 }
 
 func GetTickArray(tick int32, ktas KTAS) KeyedTickArray {

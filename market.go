@@ -13,7 +13,8 @@ func NewMarket(client *rpc.Client, marketId solana.PublicKey) Market {
 	m.Client = client
 	m.ProgramId = RAYDIUM_PROGRAM_ID
 	m.MarketId = marketId
-	m.SetKtas()
+	// too costly
+	// m.SetKtas()
 	m.SetData()
 	return m
 }
@@ -22,7 +23,7 @@ type Market struct {
 	ProgramId solana.PublicKey
 	MarketId  solana.PublicKey
 	PoolState amm_v3.PoolState
-	KTAS      []KeyedTickArray
+	KTAS      KTAS
 	Client    *rpc.Client
 }
 
@@ -47,6 +48,13 @@ func (m *Market) SetKtas() {
 func (m Market) GetKtasForTicks(currentTick, tickForSqrtPriceLimit int32) (solana.PublicKey, solana.PublicKey, solana.PublicKey) {
 	keyTickForSqrtPriceLimit := GetTickArray(tickForSqrtPriceLimit, m.KTAS).Account
 	return GetTickArray(currentTick, m.KTAS).Account, keyTickForSqrtPriceLimit, keyTickForSqrtPriceLimit
+}
+
+// calculate derived key
+func (m Market) GetTickAccount(tick int32) solana.PublicKey {
+	startTick := GetStartTickIndex(tick, m.PoolState.TickSpacing)
+	key, _ := GetTickArrayAddress(m.MarketId, startTick)
+	return key
 }
 
 func (m Market) SwapAtoBExactInputInstruction(amount, otherAmountThreshold uint64, sqrtPriceLimit bin.Uint128, owner, ownerTokenAAddress, ownerTokenBAddress, kta solana.PublicKey) solana.Instruction {
@@ -75,7 +83,7 @@ func (m Market) SwapAtoBExactInputInstructionWithSlippageUseState(amount uint64,
 	priceWithSlippage := price - (price * (slippagePCT / 100))
 	otherAmountThreshold := uint64(float64(amount) * priceWithSlippage)
 	sqrtPriceLimit, _ := BigIntToBinUint128(CalculateSqrtPriceQ64(big.NewFloat(priceWithSlippage)))
-	kta := GetTickArray(m.PoolState.TickCurrent, m.KTAS)
+	kta := m.GetTickAccount(m.PoolState.TickCurrent)
 	return amm_v3.NewSwapInstruction(
 		amount,
 		otherAmountThreshold,
@@ -90,17 +98,17 @@ func (m Market) SwapAtoBExactInputInstructionWithSlippageUseState(amount uint64,
 		m.PoolState.TokenVault1,
 		m.PoolState.ObservationKey,
 		solana.TokenProgramID,
-		kta.Account,
+		kta,
 	).Build()
 }
 
 func (m Market) SwapAtoBExactInputInstructionWithSlippageUsePrice(amount uint64, price, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
 	amm_v3.ProgramID = m.ProgramId
-	tick := (PriceToTick(price) / int32(m.PoolState.TickSpacing)) * int32(m.PoolState.TickSpacing)
+	// tick := (PriceToTick(price) / int32(m.PoolState.TickSpacing)) * int32(m.PoolState.TickSpacing)
 	priceWithSlippage := price - (price * (slippagePCT / 100))
 	otherAmountThreshold := uint64(float64(amount) * priceWithSlippage)
 	sqrtPriceLimit, _ := BigIntToBinUint128(CalculateSqrtPriceQ64(big.NewFloat(priceWithSlippage)))
-	kta := GetTickArray(tick, m.KTAS)
+	kta := m.GetTickAccount(PriceToTick(price))
 	return amm_v3.NewSwapInstruction(
 		amount,
 		otherAmountThreshold,
@@ -115,7 +123,7 @@ func (m Market) SwapAtoBExactInputInstructionWithSlippageUsePrice(amount uint64,
 		m.PoolState.TokenVault1,
 		m.PoolState.ObservationKey,
 		solana.TokenProgramID,
-		kta.Account,
+		kta,
 	).Build()
 }
 
@@ -125,7 +133,7 @@ func (m Market) SwapBToAExactInputInstructionWithSlippageUseState(amount uint64,
 	priceWithSlippage := price + (price * (slippagePCT / 100))
 	otherAmountThreshold := uint64(float64(amount) / priceWithSlippage)
 	sqrtPriceLimit, _ := BigIntToBinUint128(CalculateSqrtPriceQ64(big.NewFloat(priceWithSlippage)))
-	kta := GetTickArray(m.PoolState.TickCurrent, m.KTAS)
+	kta := m.GetTickAccount(m.PoolState.TickCurrent)
 	return amm_v3.NewSwapInstruction(
 		amount,
 		otherAmountThreshold,
@@ -140,7 +148,7 @@ func (m Market) SwapBToAExactInputInstructionWithSlippageUseState(amount uint64,
 		m.PoolState.TokenVault0,
 		m.PoolState.ObservationKey,
 		solana.TokenProgramID,
-		kta.Account,
+		kta,
 	).Build()
 }
 
@@ -170,7 +178,7 @@ func (m Market) SwapBToAExactInputInstructionWithSlippageUsePrice(amount uint64,
 	priceWithSlippage := price + (price * (slippagePCT / 100))
 	otherAmountThreshold := uint64(float64(amount) / priceWithSlippage)
 	sqrtPriceLimit, _ := BigIntToBinUint128(CalculateSqrtPriceQ64(big.NewFloat(priceWithSlippage)))
-	kta := GetTickArray(tick, m.KTAS)
+	kta := m.GetTickAccount(tick)
 	return amm_v3.NewSwapInstruction(
 		amount,
 		otherAmountThreshold,
@@ -185,6 +193,6 @@ func (m Market) SwapBToAExactInputInstructionWithSlippageUsePrice(amount uint64,
 		m.PoolState.TokenVault0,
 		m.PoolState.ObservationKey,
 		solana.TokenProgramID,
-		kta.Account,
+		kta,
 	).Build()
 }

@@ -36,7 +36,7 @@ func (m *Market) SetData() {
 	m.PoolState = m.FetchData()
 }
 
-func (m Market) FetchKtas() []KeyedTickArray {
+func (m Market) FetchKtas() KTAS {
 	ktas := GetTickArrays(m.Client, m.MarketId)
 	return ktas
 }

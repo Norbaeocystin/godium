@@ -75,6 +75,9 @@ func GetTickArrays(client *rpc.Client, poolStateAddress solana.PublicKey) []Keye
 
 func GetStartTickIndex(tick int32, tickSpacing uint16) int32 {
 	realIndex := (tick / int32(tickSpacing)) / int32(TICK_ARRAY_SIZE)
+	if tick < 0 && tick%(int32(tickSpacing)*int32(TICK_ARRAY_SIZE)) != 0 {
+		realIndex -= 1
+	}
 	return realIndex * int32(tickSpacing) * int32(TICK_ARRAY_SIZE)
 }
 

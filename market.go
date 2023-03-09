@@ -49,7 +49,7 @@ func (m Market) GetKtasForTicks(currentTick, tickForSqrtPriceLimit int32) (solan
 	return GetTickArray(currentTick, m.KTAS).Account, keyTickForSqrtPriceLimit, keyTickForSqrtPriceLimit
 }
 
-func (m Market) SwapAtoBInstruction(amount, otherAmountThreshold uint64, sqrtPriceLimit bin.Uint128, owner, ownerTokenAAddress, ownerTokenBAddress, kta solana.PublicKey) solana.Instruction {
+func (m Market) SwapAtoBExactInputInstruction(amount, otherAmountThreshold uint64, sqrtPriceLimit bin.Uint128, owner, ownerTokenAAddress, ownerTokenBAddress, kta solana.PublicKey) solana.Instruction {
 	amm_v3.ProgramID = m.ProgramId
 	return amm_v3.NewSwapInstruction(
 		amount,
@@ -69,7 +69,7 @@ func (m Market) SwapAtoBInstruction(amount, otherAmountThreshold uint64, sqrtPri
 	).Build()
 }
 
-func (m Market) SwapAtoBInstructionWithSlippageUseState(amount uint64, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
+func (m Market) SwapAtoBExactInputInstructionWithSlippageUseState(amount uint64, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
 	amm_v3.ProgramID = m.ProgramId
 	price := CalculatePriceFromSQRPriceQ64(m.PoolState.SqrtPriceX64.BigInt())
 	priceWithSlippage := price - (price * (slippagePCT / 100))
@@ -94,7 +94,7 @@ func (m Market) SwapAtoBInstructionWithSlippageUseState(amount uint64, slippageP
 	).Build()
 }
 
-func (m Market) SwapAtoBInstructionWithSlippageUsePrice(amount uint64, price, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
+func (m Market) SwapAtoBExactInputInstructionWithSlippageUsePrice(amount uint64, price, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
 	amm_v3.ProgramID = m.ProgramId
 	tick := (PriceToTick(price) / int32(m.PoolState.TickSpacing)) * int32(m.PoolState.TickSpacing)
 	priceWithSlippage := price - (price * (slippagePCT / 100))
@@ -119,7 +119,7 @@ func (m Market) SwapAtoBInstructionWithSlippageUsePrice(amount uint64, price, sl
 	).Build()
 }
 
-func (m Market) SwapBToAInstructionWithSlippageUseState(amount uint64, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
+func (m Market) SwapBToAExactInputInstructionWithSlippageUseState(amount uint64, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
 	amm_v3.ProgramID = m.ProgramId
 	price := CalculatePriceFromSQRPriceQ64(m.PoolState.SqrtPriceX64.BigInt())
 	priceWithSlippage := price + (price * (slippagePCT / 100))
@@ -130,7 +130,7 @@ func (m Market) SwapBToAInstructionWithSlippageUseState(amount uint64, slippageP
 		amount,
 		otherAmountThreshold,
 		sqrtPriceLimit,
-		false,
+		true,
 		owner,
 		m.PoolState.AmmConfig,
 		m.MarketId,
@@ -144,13 +144,13 @@ func (m Market) SwapBToAInstructionWithSlippageUseState(amount uint64, slippageP
 	).Build()
 }
 
-func (m Market) SwapBToAInstruction(amount, otherAmountThreshold uint64, sqrtPriceLimit bin.Uint128, owner, ownerTokenAAddress, ownerTokenBAddress, kta solana.PublicKey) solana.Instruction {
+func (m Market) SwapBToAExactInputInstruction(amount, otherAmountThreshold uint64, sqrtPriceLimit bin.Uint128, owner, ownerTokenAAddress, ownerTokenBAddress, kta solana.PublicKey) solana.Instruction {
 	amm_v3.ProgramID = m.ProgramId
 	return amm_v3.NewSwapInstruction(
 		amount,
 		otherAmountThreshold,
 		sqrtPriceLimit,
-		false,
+		true,
 		owner,
 		m.PoolState.AmmConfig,
 		m.MarketId,
@@ -164,7 +164,7 @@ func (m Market) SwapBToAInstruction(amount, otherAmountThreshold uint64, sqrtPri
 	).Build()
 }
 
-func (m Market) SwapBToAInstructionWithSlippageUsePrice(amount uint64, price, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
+func (m Market) SwapBToAExactInputInstructionWithSlippageUsePrice(amount uint64, price, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
 	amm_v3.ProgramID = m.ProgramId
 	tick := (PriceToTick(price) / int32(m.PoolState.TickSpacing)) * int32(m.PoolState.TickSpacing)
 	priceWithSlippage := price + (price * (slippagePCT / 100))
@@ -175,7 +175,7 @@ func (m Market) SwapBToAInstructionWithSlippageUsePrice(amount uint64, price, sl
 		amount,
 		otherAmountThreshold,
 		sqrtPriceLimit,
-		false,
+		true,
 		owner,
 		m.PoolState.AmmConfig,
 		m.MarketId,

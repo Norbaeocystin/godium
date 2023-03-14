@@ -27,6 +27,14 @@ type Market struct {
 	Client    *rpc.Client
 }
 
+func (m Market) MintA() solana.PublicKey {
+	return m.PoolState.TokenMint0
+}
+
+func (m Market) MintB() solana.PublicKey {
+	return m.PoolState.TokenMint1
+}
+
 func (m Market) FetchData() amm_v3.PoolState {
 	data := GetPoolState(*m.Client, m.MarketId)
 	return data
@@ -127,7 +135,7 @@ func (m Market) SwapAtoBExactInputInstructionWithSlippageUsePrice(amount uint64,
 	).Build()
 }
 
-func (m Market) SwapBToAExactInputInstructionWithSlippageUseState(amount uint64, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
+func (m Market) SwapBtoAExactInputInstructionWithSlippageUseState(amount uint64, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
 	amm_v3.ProgramID = m.ProgramId
 	price := CalculatePriceFromSQRPriceQ64(m.PoolState.SqrtPriceX64.BigInt())
 	priceWithSlippage := price + (price * (slippagePCT / 100))
@@ -152,7 +160,7 @@ func (m Market) SwapBToAExactInputInstructionWithSlippageUseState(amount uint64,
 	).Build()
 }
 
-func (m Market) SwapBToAExactInputInstruction(amount, otherAmountThreshold uint64, sqrtPriceLimit bin.Uint128, owner, ownerTokenAAddress, ownerTokenBAddress, kta solana.PublicKey) solana.Instruction {
+func (m Market) SwapBtoAExactInputInstruction(amount, otherAmountThreshold uint64, sqrtPriceLimit bin.Uint128, owner, ownerTokenAAddress, ownerTokenBAddress, kta solana.PublicKey) solana.Instruction {
 	amm_v3.ProgramID = m.ProgramId
 	return amm_v3.NewSwapInstruction(
 		amount,
@@ -172,7 +180,7 @@ func (m Market) SwapBToAExactInputInstruction(amount, otherAmountThreshold uint6
 	).Build()
 }
 
-func (m Market) SwapBToAExactInputInstructionWithSlippageUsePrice(amount uint64, price, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
+func (m Market) SwapBtoAExactInputInstructionWithSlippageUsePrice(amount uint64, price, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
 	amm_v3.ProgramID = m.ProgramId
 	tick := (PriceToTick(price) / int32(m.PoolState.TickSpacing)) * int32(m.PoolState.TickSpacing)
 	priceWithSlippage := price + (price * (slippagePCT / 100))

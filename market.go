@@ -1,6 +1,7 @@
 package godium
 
 import (
+	"context"
 	"github.com/Norbaeocystin/godium/amm_v3"
 	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
@@ -23,6 +24,7 @@ type Market struct {
 	ProgramId solana.PublicKey
 	MarketId  solana.PublicKey
 	PoolState amm_v3.PoolState
+	AmmConfig amm_v3.AmmConfig
 	KTAS      KTAS
 	Client    *rpc.Client
 }
@@ -35,13 +37,26 @@ func (m Market) MintB() solana.PublicKey {
 	return m.PoolState.TokenMint1
 }
 
+func (m Market) Fee() float64 {
+	return float64(m.AmmConfig.TradeFeeRate) / 10_000_00.0
+}
+
 func (m Market) FetchData() amm_v3.PoolState {
 	data := GetPoolState(*m.Client, m.MarketId)
 	return data
 }
 
+func (m Market) FetchAmmConfig() amm_v3.AmmConfig {
+	var ammConfig amm_v3.AmmConfig
+	account, _ := m.Client.GetAccountInfo(context.TODO(), m.PoolState.AmmConfig)
+	decoder := bin.NewBorshDecoder(account.Bytes())
+	decoder.Decode(&ammConfig)
+	return ammConfig
+}
+
 func (m *Market) SetData() {
 	m.PoolState = m.FetchData()
+	m.AmmConfig = m.FetchAmmConfig()
 }
 
 func (m Market) FetchKtas() KTAS {

@@ -340,7 +340,7 @@ func (m Market) SwapBtoAExactOutputInstructionWithSlippageUseState(amount uint64
 	).Build()
 }
 
-// amount is output
+// amount is output amount - what means amount of token A - how much you want
 func (m Market) SwapBtoAExactOutputInstructionWithSlippageUsePrice(amount uint64, price, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
 	amm_v3.ProgramID = m.ProgramId
 	tick := (PriceToTick(price) / int32(m.PoolState.TickSpacing)) * int32(m.PoolState.TickSpacing)

@@ -219,3 +219,71 @@ func (m Market) SwapBtoAExactInputInstructionWithSlippageUsePrice(amount uint64,
 		kta,
 	).Build()
 }
+
+// amount is output amount and otherAmount.. max amount of token to be used
+func (m Market) SwapAtoBExactOutputInstruction(amount, otherAmountThreshold uint64, sqrtPriceLimit bin.Uint128, owner, ownerTokenAAddress, ownerTokenBAddress, kta solana.PublicKey) solana.Instruction {
+	amm_v3.ProgramID = m.ProgramId
+	return amm_v3.NewSwapInstruction(
+		amount,
+		otherAmountThreshold,
+		sqrtPriceLimit,
+		false,
+		owner,
+		m.PoolState.AmmConfig,
+		m.MarketId,
+		ownerTokenAAddress,
+		ownerTokenBAddress,
+		m.PoolState.TokenVault0,
+		m.PoolState.TokenVault1,
+		m.PoolState.ObservationKey,
+		solana.TokenProgramID,
+		kta,
+	).Build()
+}
+
+// amount is output amount and otherAmount.. max amount of token to be used
+func (m Market) SwapBtoAExactOutputInstruction(amount, otherAmountThreshold uint64, sqrtPriceLimit bin.Uint128, owner, ownerTokenAAddress, ownerTokenBAddress, kta solana.PublicKey) solana.Instruction {
+	amm_v3.ProgramID = m.ProgramId
+	return amm_v3.NewSwapInstruction(
+		amount,
+		otherAmountThreshold,
+		sqrtPriceLimit,
+		false,
+		owner,
+		m.PoolState.AmmConfig,
+		m.MarketId,
+		ownerTokenBAddress,
+		ownerTokenAAddress,
+		m.PoolState.TokenVault1,
+		m.PoolState.TokenVault0,
+		m.PoolState.ObservationKey,
+		solana.TokenProgramID,
+		kta,
+	).Build()
+}
+
+// amount is output
+func (m Market) SwapAtoBExactOutputInstructionWithSlippageUseState(amount uint64, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
+	amm_v3.ProgramID = m.ProgramId
+	price := CalculatePriceFromSQRPriceQ64(m.PoolState.SqrtPriceX64.BigInt())
+	priceWithSlippage := price - (price * (slippagePCT / 100))
+	otherAmountThreshold := uint64((float64(amount) / priceWithSlippage) * 1.01)
+	sqrtPriceLimit, _ := BigIntToBinUint128(CalculateSqrtPriceQ64(big.NewFloat(priceWithSlippage)))
+	kta := m.GetTickAccount(m.PoolState.TickCurrent)
+	return amm_v3.NewSwapInstruction(
+		amount,
+		otherAmountThreshold,
+		sqrtPriceLimit,
+		false,
+		owner,
+		m.PoolState.AmmConfig,
+		m.MarketId,
+		ownerTokenAAddress,
+		ownerTokenBAddress,
+		m.PoolState.TokenVault0,
+		m.PoolState.TokenVault1,
+		m.PoolState.ObservationKey,
+		solana.TokenProgramID,
+		kta,
+	).Build()
+}

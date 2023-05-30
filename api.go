@@ -117,7 +117,8 @@ type Pool struct {
 		PriceMin float64 `json:"priceMin"`
 		PriceMax float64 `json:"priceMax"`
 	} `json:"month"`
-	LookupTableAccount string `json:"lookupTableAccount"`
+	Price              float64 `json:"price"`
+	LookupTableAccount string  `json:"lookupTableAccount"`
 }
 
 type PoolsV3Data struct {

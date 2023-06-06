@@ -2,13 +2,12 @@ package godium
 
 import (
 	"context"
-	amm_v3 "github.com/Norbaeocystin/godium/amm_v3"
+	"github.com/Norbaeocystin/godium/amm_v3"
 	bin "github.com/gagliardetto/binary"
 	"github.com/gagliardetto/solana-go"
 	"github.com/gagliardetto/solana-go/programs/token"
 	"github.com/gagliardetto/solana-go/rpc"
 	"log"
-	"strings"
 )
 
 type PositionKeys struct {
@@ -29,6 +28,7 @@ func GetPosition(client rpc.Client, personalPosition solana.PublicKey) amm_v3.Pe
 			MinContextSlot: nil,
 		},
 	)
+	//
 	var position amm_v3.PersonalPositionState
 	dataPos := account.GetBinary()
 	borshDec := bin.NewBorshDecoder(dataPos)
@@ -37,8 +37,8 @@ func GetPosition(client rpc.Client, personalPosition solana.PublicKey) amm_v3.Pe
 	return position
 }
 
-func FindRaydiumPositionsForOwner(client *rpc.Client, owner, poolAddress solana.PublicKey) ([]PositionKeys, error) {
-	positionsKeys := make([]PositionKeys, 0)
+func FindRaydiumPositionsForOwner(client *rpc.Client, owner, poolAddress solana.PublicKey) ([]amm_v3.PersonalPositionState, error) {
+	positions := make([]amm_v3.PersonalPositionState, 0)
 	tokens, err := client.GetTokenAccountsByOwner(context.TODO(), owner,
 		&rpc.GetTokenAccountsConfig{
 			Mint:      nil,
@@ -58,60 +58,14 @@ func FindRaydiumPositionsForOwner(client *rpc.Client, owner, poolAddress solana.
 		borshDec := bin.NewBorshDecoder(tk.Account.Data.GetBinary())
 		borshDec.Decode(&ta)
 		if ta.Amount == 1 {
-			log.Println()
-			keys, err := FindPublicKeysForPositioMint(client, ta.Mint, poolAddress)
-			if err != nil {
-				return positionsKeys, err
-			}
+			// tk.Pubkey = positionNFTAccount
+			pak, _ := GetPersonalPositionAddress(ta.Mint)
+			m := GetPosition(*client, pak)
 			// var pubKey solana.PublicKey
-			if keys.RaydiumPosition == true {
-				positionsKeys = append(positionsKeys, keys)
+			if m.PoolId.String() == poolAddress.String() {
+				positions = append(positions, m)
 			}
 		}
 	}
-	return positionsKeys, nil
-}
-
-// not working if use with SOL, position needs to be open with WSOL
-func FindPublicKeysForPositioMint(client *rpc.Client, positionMint, poolAdddress solana.PublicKey) (PositionKeys, error) {
-	var positionKeys PositionKeys
-	positionKeys.RaydiumPosition = false
-	one := 1
-	signature, err := client.GetSignaturesForAddressWithOpts(context.TODO(), positionMint,
-		&rpc.GetSignaturesForAddressOpts{
-			&one,
-			solana.Signature{},
-			solana.Signature{},
-			rpc.CommitmentFinalized,
-			nil,
-		})
-	if err != nil {
-		return positionKeys, err
-	}
-	version := uint64(0)
-	opts := rpc.GetTransactionOpts{
-		Encoding:                       solana.EncodingBase64,
-		Commitment:                     rpc.CommitmentFinalized,
-		MaxSupportedTransactionVersion: &version,
-	}
-	// log.Println("sign", signature[0].Signature)
-
-	txs, err := client.GetTransaction(context.TODO(), signature[0].Signature, &opts)
-	if err != nil {
-		log.Println(err)
-		return positionKeys, err
-	}
-	if strings.Contains(strings.Join(txs.Meta.LogMessages, ","), RAYDIUM_PROGRAM_ID.String()) {
-		tx, _ := txs.Transaction.GetTransaction()
-		accounts, _ := tx.AccountMetaList()
-		if len(accounts) > 13 {
-			// log.Println("Match tx with signature", signature[0].Signature)
-			positionKeys.NFTMint = accounts[1].PublicKey
-			positionKeys.PositionNFTAccount = accounts[2].PublicKey
-			positionKeys.PersonalPosition = accounts[7].PublicKey
-			positionKeys.ProtocolPosition = accounts[5].PublicKey
-			positionKeys.RaydiumPosition = true
-		}
-	}
-	return positionKeys, nil
+	return positions, nil
 }

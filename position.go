@@ -69,3 +69,36 @@ func FindRaydiumPositionsForOwner(client *rpc.Client, owner, poolAddress solana.
 	}
 	return positions, nil
 }
+
+func FindRaydiumPositionsForOwnerAll(client *rpc.Client, owner solana.PublicKey) ([]amm_v3.PersonalPositionState, error) {
+	positions := make([]amm_v3.PersonalPositionState, 0)
+	tokens, err := client.GetTokenAccountsByOwner(context.TODO(), owner,
+		&rpc.GetTokenAccountsConfig{
+			Mint:      nil,
+			ProgramId: solana.TokenProgramID.ToPointer(),
+		},
+
+		&rpc.GetTokenAccountsOpts{
+			Commitment: "",
+			Encoding:   solana.EncodingBase64,
+			DataSlice:  nil,
+		})
+	if err != nil {
+		log.Println("fetching positions error", err)
+	}
+	for _, tk := range tokens.Value {
+		var ta token.Account
+		borshDec := bin.NewBorshDecoder(tk.Account.Data.GetBinary())
+		borshDec.Decode(&ta)
+		if ta.Amount == 1 {
+			// tk.Pubkey = positionNFTAccount
+			pak, _ := GetPersonalPositionAddress(ta.Mint)
+			m := GetPosition(*client, pak)
+			// var pubKey solana.PublicKey
+			if &m.PoolId != nil {
+				positions = append(positions, m)
+			}
+		}
+	}
+	return positions, nil
+}

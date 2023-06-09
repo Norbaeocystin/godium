@@ -103,14 +103,14 @@ func OpenNewPositionAndAddLiquidity(tickLower,
 func OpenNewPositionAndAddLiquidityIx(tickLower,
 	tickUpper int32, client rpc.Client, tokenAMax,
 	tokenBMax uint64, liquidity bin.Uint128,
-	tokenA, tokenB, tokenVault0, tokenVault1, poolStateAddress solana.PublicKey, wallet solana.PrivateKey) ([]solana.Instruction, error) {
+	tokenA, tokenB, tokenVault0, tokenVault1, poolStateAddress, nftMint solana.PublicKey, wallet solana.PrivateKey) ([]solana.Instruction, error) {
 	owner := wallet
 	amm_v32.ProgramID = RAYDIUM_PROGRAM_ID
-	nftMint := solana.NewWallet()
+	// nftMint := solana.NewWallet()
 	protocolPosition, _ := GetProtocolPositionAddress(poolStateAddress, tickLower, tickUpper)
-	personalPosition, _ := GetPersonalPositionAddress(nftMint.PublicKey())
-	metadataAccount, _ := GetNFTMetadaAddress(nftMint.PublicKey())
-	positionNFTAccount, _ := GetPositionNFTAccount(owner.PublicKey(), nftMint.PublicKey())
+	personalPosition, _ := GetPersonalPositionAddress(nftMint)
+	metadataAccount, _ := GetNFTMetadaAddress(nftMint)
+	positionNFTAccount, _ := GetPositionNFTAccount(owner.PublicKey(), nftMint)
 	//  TickArrayLowerStartIndex -39600
 	ktas := GetTickArrays(&client, poolStateAddress)
 	ktaLower := GetTickArray(tickLower, ktas)
@@ -125,7 +125,7 @@ func OpenNewPositionAndAddLiquidityIx(tickLower,
 		tokenBMax,
 		owner.PublicKey(),
 		owner.PublicKey(),
-		nftMint.PublicKey(),
+		nftMint,
 		positionNFTAccount, // ata pda
 		metadataAccount,    //pda
 		poolStateAddress,
@@ -143,5 +143,5 @@ func OpenNewPositionAndAddLiquidityIx(tickLower,
 		solana.SPLAssociatedTokenAccountProgramID, // const
 		METAPLEX,                                  // const
 	).Build()
-    return []solana.Instruction{i1}, nil
+	return []solana.Instruction{i1}, nil
 }

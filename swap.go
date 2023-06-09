@@ -32,7 +32,7 @@ func Swap(client *rpc.Client, amountIn, amountOutMin uint64, sqrtPriceLimit bin.
 		outputVault,
 		observationState,
 		solana.TokenProgramID,
-		solana.MustPublicKeyFromBase58("4Msu9Acwj2U9rZCsWCKFUqhXL5UWovPGUxi99VJ2aXYA"), // tickarray,
+		tickarray,
 	).Build()
 	accountsMeta := i.Accounts()
 	for idx, accountMeta := range accountsMeta {
@@ -76,4 +76,30 @@ func Swap(client *rpc.Client, amountIn, amountOutMin uint64, sqrtPriceLimit bin.
 	)
 	// log.Println(sig)
 	return sig, err
+}
+
+func SwapIx(client *rpc.Client, amountIn, amountOutMin uint64, sqrtPriceLimit bin.Uint128, isBaseInput bool, tokenIn,
+	tokenOut, observationState, inputVault, outputVault, poolState, ammConfig, tickarray solana.PublicKey, owner solana.PrivateKey) ([]solana.Instruction, error) {
+	amm_v32.ProgramID = RAYDIUM_PROGRAM_ID
+	i := amm_v32.NewSwapInstruction(
+		amountIn,
+		amountOutMin,
+		sqrtPriceLimit,
+		isBaseInput,
+		owner.PublicKey(),
+		ammConfig,
+		poolState,
+		tokenIn,
+		tokenOut,
+		inputVault,
+		outputVault,
+		observationState,
+		solana.TokenProgramID,
+		tickarray,
+	).Build()
+	accountsMeta := i.Accounts()
+	for idx, accountMeta := range accountsMeta {
+		log.Println(idx, accountMeta.PublicKey)
+	}
+	return []solana.Instruction{i}, nil
 }

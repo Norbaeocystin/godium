@@ -97,6 +97,51 @@ func DecreaseLiquidityAndClose(position amm_v32.PersonalPositionState, client rp
 	return sig, err
 }
 
+func DecreaseLiquidityAndCloseIx(position amm_v32.PersonalPositionState, client rpc.Client, token0, token1, tokenVault0, tokenVault1,
+	poolStateAddress solana.PublicKey, wallet solana.PrivateKey, rewardsAccounts []*solana.AccountMeta) ([]solana.Instruction, error) {
+	owner := wallet
+	amm_v32.ProgramID = RAYDIUM_PROGRAM_ID
+	ktas := GetTickArrays(&client, poolStateAddress)
+	protocolPosition, _ := GetProtocolPositionAddress(poolStateAddress, position.TickLowerIndex, position.TickUpperIndex)
+	personalPosition, _ := GetPersonalPositionAddress(position.NftMint)
+	// metadataAccount, _ := GetNFTMetadaAddress(position.NftMint)
+	positionNFTAccount, _ := GetPositionNFTAccount(owner.PublicKey(), position.NftMint)
+	ktaLower := GetTickArray(position.TickLowerIndex, ktas)
+	ktaUpper := GetTickArray(position.TickUpperIndex, ktas)
+	i := amm_v32.NewDecreaseLiquidityInstruction(
+		position.Liquidity,
+		0,
+		0,
+		wallet.PublicKey(),
+		positionNFTAccount,
+		personalPosition,
+		poolStateAddress,
+		protocolPosition,
+		tokenVault0,
+		tokenVault1,
+		ktaLower.Account,
+		ktaUpper.Account,
+		token0,
+		token1,
+		solana.TokenProgramID,
+	)
+	if len(rewardsAccounts) > 0 {
+		log.Println(len(i.AccountMetaSlice))
+		i.AccountMetaSlice = append(i.AccountMetaSlice, rewardsAccounts...)
+	}
+	i1 := i.Build()
+	log.Println(len(i1.Accounts()))
+	i2 := amm_v32.NewClosePositionInstruction(
+		owner.PublicKey(),
+		position.NftMint,
+		positionNFTAccount, // ata pda
+		personalPosition,
+		solana.SystemProgramID, // const
+		solana.TokenProgramID,  // const
+	).Build()
+	return []solana.Instruction{ i1, i2}, nil
+}
+
 // collect simulation
 func CollectSimulation(position amm_v32.PersonalPositionState, client rpc.Client, token0, token1, tokenVault0, tokenVault1,
 	poolStateAddress solana.PublicKey, wallet solana.PrivateKey, rewardsAccounts []*solana.AccountMeta) (*rpc.SimulateTransactionResponse, error) {

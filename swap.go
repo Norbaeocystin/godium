@@ -78,7 +78,7 @@ func Swap(client *rpc.Client, amountIn, amountOutMin uint64, sqrtPriceLimit bin.
 	return sig, err
 }
 
-func SwapIx(client *rpc.Client, amountIn, amountOutMin uint64, sqrtPriceLimit bin.Uint128, isBaseInput bool, tokenIn,
+func SwapIx(amountIn, amountOutMin uint64, sqrtPriceLimit bin.Uint128, isBaseInput bool, tokenIn,
 	tokenOut, observationState, inputVault, outputVault, poolState, ammConfig, tickarray solana.PublicKey, owner solana.PrivateKey) ([]solana.Instruction, error) {
 	amm_v32.ProgramID = RAYDIUM_PROGRAM_ID
 	i := amm_v32.NewSwapInstruction(

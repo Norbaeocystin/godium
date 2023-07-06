@@ -51,11 +51,11 @@ func OpenNewPositionAndAddLiquidity(tickLower,
 		tokenB,
 		tokenVault0,
 		tokenVault1,
-		solana.SysVarRentPubkey,                   // const
-		solana.SystemProgramID,                    // const
-		solana.TokenProgramID,                     // const
+		solana.SysVarRentPubkey, // const
+		solana.SystemProgramID,  // const
+		solana.TokenProgramID,   // const
 		solana.SPLAssociatedTokenAccountProgramID, // const
-		METAPLEX,                                  // const
+		METAPLEX, // const
 	).Build()
 	recent, err := client.GetRecentBlockhash(context.TODO(), rpc.CommitmentFinalized)
 	if err != nil {
@@ -137,11 +137,11 @@ func OpenNewPositionAndAddLiquidityIx(tickLower,
 		tokenB,
 		tokenVault0,
 		tokenVault1,
-		solana.SysVarRentPubkey,                   // const
-		solana.SystemProgramID,                    // const
-		solana.TokenProgramID,                     // const
+		solana.SysVarRentPubkey, // const
+		solana.SystemProgramID,  // const
+		solana.TokenProgramID,   // const
 		solana.SPLAssociatedTokenAccountProgramID, // const
-		METAPLEX,                                  // const
+		METAPLEX, // const
 	).Build()
 	return []solana.Instruction{i1}, nil
 }

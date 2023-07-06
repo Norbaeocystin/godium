@@ -269,7 +269,8 @@ func (m Market) SwapAtoBExactOutputInstructionWithSlippageUseState(amount uint64
 	priceWithSlippage := price - (price * (slippagePCT / 100))
 	otherAmountThreshold := uint64((float64(amount) / priceWithSlippage) * 1.01)
 	sqrtPriceLimit, _ := BigIntToBinUint128(CalculateSqrtPriceQ64(big.NewFloat(priceWithSlippage)))
-	kta := m.GetTickAccount(m.PoolState.TickCurrent)
+	tickp := PriceToTick(priceWithSlippage)
+	kta := m.GetTickAccount(tickp) //)
 	return amm_v3.NewSwapInstruction(
 		amount,
 		otherAmountThreshold,
@@ -291,11 +292,12 @@ func (m Market) SwapAtoBExactOutputInstructionWithSlippageUseState(amount uint64
 // amount is output
 func (m Market) SwapAtoBExactOutputInstructionWithSlippageUsePrice(amount uint64, price, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
 	amm_v3.ProgramID = m.ProgramId
-	tick := (PriceToTick(price) / int32(m.PoolState.TickSpacing)) * int32(m.PoolState.TickSpacing)
+	// tick := (PriceToTick(price) / int32(m.PoolState.TickSpacing)) * int32(m.PoolState.TickSpacing)
 	priceWithSlippage := price - (price * (slippagePCT / 100))
 	otherAmountThreshold := uint64((float64(amount) / priceWithSlippage) * 1.01)
 	sqrtPriceLimit, _ := BigIntToBinUint128(CalculateSqrtPriceQ64(big.NewFloat(priceWithSlippage)))
-	kta := m.GetTickAccount(tick)
+	tickp := PriceToTick(priceWithSlippage)
+	kta := m.GetTickAccount(tickp)
 	return amm_v3.NewSwapInstruction(
 		amount,
 		otherAmountThreshold,
@@ -343,11 +345,12 @@ func (m Market) SwapBtoAExactOutputInstructionWithSlippageUseState(amount uint64
 // amount is output amount - what means amount of token A - how much you want
 func (m Market) SwapBtoAExactOutputInstructionWithSlippageUsePrice(amount uint64, price, slippagePCT float64, owner, ownerTokenAAddress, ownerTokenBAddress solana.PublicKey) solana.Instruction {
 	amm_v3.ProgramID = m.ProgramId
-	tick := (PriceToTick(price) / int32(m.PoolState.TickSpacing)) * int32(m.PoolState.TickSpacing)
+	// tick := (PriceToTick(price) / int32(m.PoolState.TickSpacing)) * int32(m.PoolState.TickSpacing)
 	priceWithSlippage := price + (price * (slippagePCT / 100))
 	otherAmountThreshold := uint64((float64(amount) * priceWithSlippage) * 1.01)
 	sqrtPriceLimit, _ := BigIntToBinUint128(CalculateSqrtPriceQ64(big.NewFloat(priceWithSlippage)))
-	kta := m.GetTickAccount(tick)
+	tickp := PriceToTick(priceWithSlippage)
+	kta := m.GetTickAccount(tickp)
 	return amm_v3.NewSwapInstruction(
 		amount,
 		otherAmountThreshold,
